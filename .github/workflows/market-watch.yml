@@ -91,11 +91,22 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Without this the action asks GitHub for an OIDC token to use the Claude GitHub App, which needs
+          # `id-token: write` and the app installed. The run's own token is enough; Claude has no shell to read it.
+          github_token: ${{ github.token }}
           prompt: ${{ steps.watch.outputs.prompt }}
           # No git or gh: Claude reads the web, so it gets no way to push or touch the repo beyond writing files.
+          # .git is off limits in case anything ever writes credentials there.
           claude_args: >-
             --max-turns 60
             --allowedTools "Read,Write,Edit,Glob,Grep,WebSearch,WebFetch,Skill,Bash(python .claude/skills/move-report/scripts/move_data.py:*)"
+            --disallowedTools "Read(./.git/**),Edit(./.git/**),Write(./.git/**)"
+
+      # TEMPORARY: shows whether the action left a token in .git/config. Remove once a run shows 0.
+      - name: Check git config for credentials
+        if: always() && steps.watch.outputs.fire == 'true'
+        run: |
+          echo "credential lines in .git/config: $(grep -ciE 'extraheader|authorization|x-access-token' .git/config || true)"
 
       - name: Save the report and push the summary
         if: always() && steps.watch.outputs.fire == 'true'
