@@ -32,7 +32,7 @@ python backtest.py 5        # same, alerting only at 5x normal
 The replay covers prices only; past headlines can't be replayed.
 
 ## Set it up on your own fork
-1. Install the [ntfy](https://ntfy.sh) app and subscribe to a long random topic name. Anyone who knows the name can read the alerts.
+1. Install the [ntfy](https://ntfy.sh) app and subscribe to a long random topic name. Anyone who knows the name can read the alerts. Prefer Telegram or Discord? Both are in the workflow, commented out, with setup steps.
 2. Run `claude setup-token` (Claude Pro or Max) to get a token.
 3. In the repo's Settings → Secrets and variables → Actions, add `NTFY_TOPIC` and `CLAUDE_CODE_OAUTH_TOKEN`.
 4. Run the workflow once by hand from the Actions tab.

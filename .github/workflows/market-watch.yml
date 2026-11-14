@@ -44,13 +44,29 @@ jobs:
         run: python watch.py
 
       # Headline text goes through env, never ${{ }} inside `run`, so a crafted headline can't inject shell commands.
+      #
+      # Where alerts go. ntfy is on by default: free, no account, one curl. The catch is that anyone who learns the
+      # topic name can read the alerts. Two other options are below, commented out. To switch, uncomment its secrets
+      # and its curl line here and in the last step, add the secrets in Settings -> Secrets, and comment out ntfy.
+      #
+      # Telegram: private by default and has nice phone notifications. Setup takes ~5 minutes: message @BotFather,
+      #   send /newbot and copy the token (TELEGRAM_TOKEN). Send your new bot any message, then open
+      #   https://api.telegram.org/bot<token>/getUpdates and copy "chat":{"id": ...} (TELEGRAM_CHAT_ID).
+      # Discord: good if you already live in a server, or want to share alerts with a group. In a channel:
+      #   Edit Channel -> Integrations -> Webhooks -> New Webhook -> Copy URL (DISCORD_WEBHOOK). The URL is the
+      #   only key, so anyone with it can post to the channel. Discord wants JSON, so jq builds it (jq comes with the runner).
       - name: Push the alert
         if: steps.watch.outputs.fire == 'true'
         env:
           TOPIC: ${{ secrets.NTFY_TOPIC }}
+          # TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          # TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           MSG: ${{ steps.watch.outputs.title }}
         run: |
           curl -s -H "Title: Market alert" -H "Priority: high" -d "$MSG" "https://ntfy.sh/$TOPIC"
+          # curl -s "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" -d chat_id="$TELEGRAM_CHAT_ID" --data-urlencode text="Market alert: $MSG"
+          # jq -n --arg c "Market alert: $MSG" '{content: $c}' | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # Save the cooldown state before the long research step, so a failed research run can't cause repeat alerts.
       - name: Save state
@@ -77,16 +93,25 @@ jobs:
         if: always() && steps.watch.outputs.fire == 'true'
         env:
           TOPIC: ${{ secrets.NTFY_TOPIC }}
+          # TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          # TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           STAMP: ${{ steps.watch.outputs.stamp }}
           REPO: ${{ github.repository }}
         run: |
           summary="data/moves/live/$STAMP-summary.txt"
           report="data/moves/live/$STAMP-move.md"
+          link="https://github.com/$REPO/blob/main/$report"
           if [ ! -f "$summary" ]; then
-            curl -s -H "Title: Research failed" -d "Check the Actions log for $STAMP" "https://ntfy.sh/$TOPIC"; exit 0
+            curl -s -H "Title: Research failed" -d "Check the Actions log for $STAMP" "https://ntfy.sh/$TOPIC"
+            # curl -s "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" -d chat_id="$TELEGRAM_CHAT_ID" --data-urlencode text="Research failed, check the Actions log for $STAMP"
+            # jq -n --arg c "Research failed, check the Actions log for $STAMP" '{content: $c}' | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
+            exit 0
           fi
           git add data/moves/live
           git commit -m "market-watch: live report $STAMP"
           git pull --rebase && git push
-          curl -s -H "Title: Why it moved" -H "Click: https://github.com/$REPO/blob/main/$report" \
-            --data-binary "@$summary" "https://ntfy.sh/$TOPIC"
+          curl -s -H "Title: Why it moved" -H "Click: $link" --data-binary "@$summary" "https://ntfy.sh/$TOPIC"
+          # Telegram and Discord have no tap-to-open header, so the link goes at the end of the text.
+          # curl -s "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" -d chat_id="$TELEGRAM_CHAT_ID" --data-urlencode text="$(cat "$summary") $link"
+          # jq -n --rawfile s "$summary" --arg l "$link" '{content: ($s + "\n" + $l)}' | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
