@@ -29,7 +29,7 @@ STALE_MIN = 40    # ignore an asset whose newest bar is older than this (SPY at 
 
 # Headlines: Google News search, last 2 hours. A hit needs a market word AND a cause word. Words that only
 # describe a move (crash, plunge, soar) are left out: a "bitcoin crashes" headline is the move, not a reason for it.
-NEWS_QUERY = ('Bessent OR Powell OR "Federal Reserve" OR Treasury OR SEC OR bitcoin OR zcash OR "S&P 500" '
+NEWS_QUERY = ('Bessent OR Powell OR "Federal Reserve" OR Treasury OR SEC OR or BTC or ZEC or SPY or bitcoin OR zcash OR "S&P 500" '
               'OR tariff OR crypto when:2h')
 # ponytail: keyword filter, expect some misses and false hits; swap for a cheap model rating headlines if it gets noisy.
 MARKET = re.compile(r"\b(SEC|(?i:fed|fomc|powell|bessent|treasury|bitcoin|btc|zcash|zec|crypto|s&p|stocks?|"

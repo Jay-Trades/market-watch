@@ -41,6 +41,7 @@ The replay covers prices only; past headlines can't be replayed.
 - GitHub starts scheduled runs late, or skips them when busy. Think "about every 30 minutes".
 - The schedule is in UTC and set for winter time, so from March to November it runs an hour later.
 - Yahoo sometimes rate-limits cloud servers. A missing asset is skipped and shows in the log.
+- Every package is pinned in `requirements.txt`, built from `requirements.in`, so runs install the same versions every time. If Yahoo changes and yfinance breaks, update on purpose: rerun the compile command at the top of `requirements.in` with `--upgrade`, then the self-check and the replay.
 - The headline filter is a keyword list. It will miss some causes and flag some noise.
 - Claude gets no git or shell access beyond the data script, because it reads web pages. The workflow does the committing.
 - Reports are written mid-move and marked LIVE. They're research notes, not trade signals.

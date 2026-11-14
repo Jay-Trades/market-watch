@@ -1,0 +1,6 @@
+# What watch.py, backtest.py and the move-report data scripts import. Edit this file, not requirements.txt.
+# Rebuild the lock:  uv pip compile requirements.in -o requirements.txt --python-version 3.12 --python-platform linux
+# Update everything: add --upgrade to that, then run `python watch.py --test` and `python backtest.py` before committing.
+yfinance>=1.4.1
+pandas>=3.0.3
+numpy>=2.4.6
