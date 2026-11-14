@@ -1,5 +1,5 @@
 # Intraday alerts for SPY, Bitcoin and Zcash. A cheap no-AI check every 30 minutes; Claude only runs when it fires.
-# Needs two repo secrets: NTFY_TOPIC (your private ntfy topic name) and CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`).
+# Needs two repo secrets: NTFY_TOPIC (your private ntfy topic name) and ANTHROPIC_API_KEY (or CLAUDE_CODE_OAUTH_TOKEN, see research job).
 #
 # Three jobs, each on its own fresh machine:
 #   watch    (write access)  price + news check, first push, save cooldown state. No AI.
@@ -122,7 +122,9 @@ jobs:
       - name: Research the move
         uses: anthropics/claude-code-action@v1
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Pay-per-use API key. To run on a Claude Pro/Max plan instead, swap for:
+          #   claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}   (token from `claude setup-token`)
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Without this the action asks GitHub for an OIDC token for the Claude GitHub App. This job's token is
           # read-only, so it's fine that the action writes it into .git/config.
           github_token: ${{ github.token }}
