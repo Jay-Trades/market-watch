@@ -1,7 +1,7 @@
 {
  "date": "2026-11-14",
- "as_of": "2026-11-14T12:37-05:00",
- "session_complete": false,
+ "as_of": "2026-11-14T16:09-05:00",
+ "session_complete": true,
  "big_day": false,
  "triggers": [],
  "session_paths": {
@@ -23,14 +23,14 @@
     "last_pct": -3.8
    },
    "regular": {
-    "low": 65090.04,
-    "low_pct": -5.44,
-    "low_at": "Sat 12:05 ET",
-    "high": 65991.08,
-    "high_pct": -4.13,
-    "high_at": "Sat 09:40 ET",
-    "last": 65720.25,
-    "last_pct": -4.52
+    "low": 64713.2,
+    "low_pct": -5.99,
+    "low_at": "Sat 15:55 ET",
+    "high": 66000.61,
+    "high_pct": -4.12,
+    "high_at": "Sat 12:35 ET",
+    "last": 64713.2,
+    "last_pct": -5.99
    }
   },
   "ZEC-USD": {
@@ -46,14 +46,14 @@
     "last_pct": -7.61
    },
    "regular": {
-    "low": 856.21,
-    "low_pct": -10.41,
-    "low_at": "Sat 12:05 ET",
+    "low": 821.39,
+    "low_pct": -14.05,
+    "low_at": "Sat 15:50 ET",
     "high": 887.65,
     "high_pct": -7.12,
     "high_at": "Sat 09:50 ET",
-    "last": 880.84,
-    "last_pct": -7.83
+    "last": 827.77,
+    "last_pct": -13.38
    }
   }
  },
@@ -137,16 +137,16 @@
   "semis_megacap": {},
   "other": {
    "BTC-USD": {
-    "close": 65711.45,
+    "close": 64499.4,
     "prev_close": 68249.27,
-    "day_pct": -3.72,
-    "change": -2537.82,
+    "day_pct": -5.49,
+    "change": -3749.875,
     "gap_pct": -0.02,
-    "open_to_close_pct": -3.7,
-    "range_pct": 4.79,
-    "close_in_range": 0.19,
-    "z": -1.79,
-    "vol_vs_20d": 1.27,
+    "open_to_close_pct": -5.48,
+    "range_pct": 5.6,
+    "close_in_range": -0.01,
+    "z": -2.64,
+    "vol_vs_20d": 1.39,
     "ret_5d_before": -8.49,
     "ret_20d_before": -15.52,
     "vs_ma20_before": -10.88,
@@ -156,16 +156,16 @@
     "name": "Bitcoin"
    },
    "ZEC-USD": {
-    "close": 880.84,
+    "close": 822.94,
     "prev_close": 932.1,
-    "day_pct": -5.5,
-    "change": -51.26,
+    "day_pct": -11.71,
+    "change": -109.161,
     "gap_pct": 0.01,
-    "open_to_close_pct": -5.5,
-    "range_pct": 8.75,
-    "close_in_range": 0.31,
-    "z": -0.94,
-    "vol_vs_20d": 0.78,
+    "open_to_close_pct": -11.72,
+    "range_pct": 12.11,
+    "close_in_range": -0.01,
+    "z": -2.0,
+    "vol_vs_20d": 0.87,
     "ret_5d_before": -22.82,
     "ret_20d_before": -22.81,
     "vs_ma20_before": -21.67,
