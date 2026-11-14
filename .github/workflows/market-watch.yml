@@ -1,0 +1,86 @@
+# Intraday alerts for SPY, Bitcoin and Zcash. A cheap no-AI check every 30 minutes; Claude only runs when it fires.
+# Needs two repo secrets: NTFY_TOPIC (your private ntfy topic name) and CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`).
+name: market-watch
+
+on:
+  # Every 30 min, 8 AM to 11 PM Eastern, every day (crypto trades weekends): ~31 runs/day, ~930 of the 2,000 free
+  # minutes a month (each run bills at least 1 minute). GitHub can start scheduled runs late or skip them when busy.
+  # ponytail: cron is UTC and fixed to EST (UTC-5); during daylight time it runs 9 AM to midnight Eastern.
+  # Shift every hour down by one in March if that matters.
+  schedule:
+    - cron: "*/30 13-23 * * *"
+    - cron: "*/30 0-3 * * *"
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: market-watch  # a long research run makes the next check wait instead of overlapping it
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - run: pip install -r requirements.txt
+
+      - id: watch
+        run: python watch.py
+
+      # Headline text goes through env, never ${{ }} inside `run`, so a crafted headline can't inject shell commands.
+      - name: Push the alert
+        if: steps.watch.outputs.fire == 'true'
+        env:
+          TOPIC: ${{ secrets.NTFY_TOPIC }}
+          MSG: ${{ steps.watch.outputs.title }}
+        run: curl -s -H "Title: Market alert" -H "Priority: high" -d "$MSG" "https://ntfy.sh/$TOPIC"
+
+      # Save the cooldown state before the long research step, so a failed research run can't cause repeat alerts.
+      - name: Save state
+        if: steps.watch.outputs.fire == 'true'
+        run: |
+          git config user.name "market-watch"
+          git config user.email "market-watch@users.noreply.github.com"
+          git add state.json
+          git commit -m "market-watch: alert state"
+          git pull --rebase && git push
+
+      - name: Research the move
+        if: steps.watch.outputs.fire == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: ${{ steps.watch.outputs.prompt }}
+          # No git or gh: Claude reads the web, so it gets no way to push or touch the repo beyond writing files.
+          claude_args: >-
+            --max-turns 60
+            --allowedTools "Read,Write,Edit,Glob,Grep,WebSearch,WebFetch,Skill,Bash(python .claude/skills/move-report/scripts/move_data.py:*)"
+
+      - name: Save the report and push the summary
+        if: always() && steps.watch.outputs.fire == 'true'
+        env:
+          TOPIC: ${{ secrets.NTFY_TOPIC }}
+          STAMP: ${{ steps.watch.outputs.stamp }}
+          REPO: ${{ github.repository }}
+        run: |
+          summary="data/moves/live/$STAMP-summary.txt"
+          report="data/moves/live/$STAMP-move.md"
+          if [ ! -f "$summary" ]; then
+            curl -s -H "Title: Research failed" -d "Check the Actions log for $STAMP" "https://ntfy.sh/$TOPIC"; exit 0
+          fi
+          git add data/moves/live
+          git commit -m "market-watch: live report $STAMP"
+          git pull --rebase && git push
+          curl -s -H "Title: Why it moved" -H "Click: https://github.com/$REPO/blob/main/$report" \
+            --data-binary "@$summary" "https://ntfy.sh/$TOPIC"
