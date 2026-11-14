@@ -34,7 +34,13 @@ Writes the report to the path the prompt gives (default `data/moves/live/<stamp>
    - Contrarian: search for who disagreed, such as "buy the dip", "overdone" or "oversold", plus whoever warned before it happened.
    - Read the 5 best free articles, from different outlets and on different topics where you can. Don't fetch finance.yahoo.com, cnbc.com or seekingalpha.com: their robots.txt blocks Claude, so use search snippets for those and say so. Say so if positioning or flows data couldn't be found. Don't guess it.
 4. Write the report with the template below. Keep it to key facts and theory, about two pages.
-5. Write 1 to 4 plain sentences (what happened, the most likely why, confidence) to the summary path the prompt gives. That text becomes the phone notification, so no markdown or links.
+5. Write the summary to the path the prompt gives. It becomes the phone notification, so plain text, no markdown or links. Four short lines, each under about 20 words, in this exact shape:
+   ```
+   What: Bitcoin down 1.6% in the last hour to 64,540, below the 65,000 low.
+   Why: Likely stop-loss selling once 65,000 broke, on top of the weeklong Fed and ETF-outflow pressure.
+   Confidence: Low for this hour, medium for the trend.
+   Watch: 64,000 and 62,000, Monday's ETF flows.
+   ```
 
 ## Template
 

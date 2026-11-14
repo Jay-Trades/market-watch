@@ -54,7 +54,12 @@ python backtest.py 5        # stricter: alert only at 5x normal
 > Market alert: Bitcoin down 2.41% over 4h (3.1x normal)
 
 **Push 2, a few minutes later**, from Claude, with a link to the full report:
-> Bitcoin is down about 4.5% since Friday afternoon to roughly 65,700 dollars after breaking Friday's low overnight... No new Saturday news explains it: the most likely cause is the weeklong selloff continuing... Confidence medium; watch 62,000 dollars and Monday's ETF flows.
+> What: Bitcoin down 1.6% in the last hour to 64,540, below this morning's 65,000 low.
+> Why: Likely stop-loss selling once 65,000 broke, on top of the weeklong Fed and ETF-outflow pressure.
+> Confidence: Low for this hour, medium for the trend.
+> Watch: 64,000 and 62,000, Monday's ETF flows.
+
+The first push is the cheap check saying *something is moving*, so you hear about it within a minute. The second comes once Claude has finished researching why, usually 3 to 5 minutes later.
 
 The full report keeps facts and inferences separate, gives at least two competing explanations with evidence against each, checks that a story's timing actually fits the price, and names its sources. It flags what it couldn't verify. Reports are written mid-move, marked LIVE, and saved in `data/moves/live/`. **They're research notes, not trade signals.**
 
