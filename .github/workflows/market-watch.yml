@@ -1,5 +1,11 @@
 # Intraday alerts for SPY, Bitcoin and Zcash. A cheap no-AI check every 30 minutes; Claude only runs when it fires.
 # Needs two repo secrets: NTFY_TOPIC (your private ntfy topic name) and CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`).
+#
+# Three jobs, each on its own fresh machine:
+#   watch    (write access)  price + news check, first push, save cooldown state. No AI.
+#   research (READ-ONLY)     Claude researches the move. It reads web pages, which could carry hidden instructions,
+#                            so this job's GitHub token can only read a public repo: worthless if it ever leaked.
+#   publish  (write access)  commits the report Claude wrote and sends the second push. No AI.
 name: market-watch
 
 on:
@@ -17,19 +23,22 @@ concurrency:
   group: market-watch # a long research run makes the next check wait instead of overlapping it
   cancel-in-progress: false
 
-permissions:
-  contents: write
+permissions: {} # nothing by default; each job asks for what it needs
 
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      fire: ${{ steps.watch.outputs.fire }}
+      stamp: ${{ steps.watch.outputs.stamp }}
+      prompt: ${{ steps.watch.outputs.prompt }}
     steps:
-      # Don't leave the run's GitHub token in .git/config: Claude can read files and fetch URLs, so a web page that
-      # talked it into reading that file could leak a token with write access. Our own git steps pass it in directly.
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          persist-credentials: false # our git step passes the token in directly instead of saving it
 
       - uses: actions/setup-python@v5
         with:
@@ -41,7 +50,7 @@ jobs:
           enable-cache: true
           cache-dependency-glob: requirements.txt
 
-      # --system so plain `python` (ours and Claude's data-script calls) sees the packages, no venv to activate.
+      # --system so plain `python` sees the packages, no venv to activate.
       - run: uv pip install --system -r requirements.txt
 
       - id: watch
@@ -51,7 +60,7 @@ jobs:
       #
       # Where alerts go. ntfy is on by default: free, no account, one curl. The catch is that anyone who learns the
       # topic name can read the alerts. Two other options are below, commented out. To switch, uncomment its secrets
-      # and its curl line here and in the last step, add the secrets in Settings -> Secrets, and comment out ntfy.
+      # and its curl line here and in the publish job, add the secrets in Settings -> Secrets, and comment out ntfy.
       #
       # Telegram: private by default and has nice phone notifications. Setup takes ~5 minutes: message @BotFather,
       #   send /newbot and copy the token (TELEGRAM_TOKEN). Send your new bot any message, then open
@@ -72,7 +81,7 @@ jobs:
           # curl -s "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" -d chat_id="$TELEGRAM_CHAT_ID" --data-urlencode text="Market alert: $MSG"
           # jq -n --arg c "Market alert: $MSG" '{content: $c}' | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
-      # Save the cooldown state before the long research step, so a failed research run can't cause repeat alerts.
+      # Save the cooldown state before the long research job, so a failed research run can't cause repeat alerts.
       - name: Save state
         if: steps.watch.outputs.fire == 'true'
         env:
@@ -86,36 +95,82 @@ jobs:
           git commit -m "market-watch: alert state"
           git pull --rebase "$url" main && git push "$url" HEAD:main
 
+  research:
+    needs: watch
+    if: needs.watch.outputs.fire == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read # the whole point of this job: no write access while Claude reads the web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: requirements.txt
+
+      # Claude runs the data script with plain `python`, so the packages go in system-wide.
+      - run: uv pip install --system -r requirements.txt
+
       - name: Research the move
-        if: steps.watch.outputs.fire == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # Without this the action asks GitHub for an OIDC token to use the Claude GitHub App, which needs
-          # `id-token: write` and the app installed. The run's own token is enough; Claude has no shell to read it.
+          # Without this the action asks GitHub for an OIDC token for the Claude GitHub App. This job's token is
+          # read-only, so it's fine that the action writes it into .git/config.
           github_token: ${{ github.token }}
-          prompt: ${{ steps.watch.outputs.prompt }}
-          # No git or gh: Claude reads the web, so it gets no way to push or touch the repo beyond writing files.
-          # .git is off limits in case anything ever writes credentials there.
+          prompt: ${{ needs.watch.outputs.prompt }}
+          # TEMPORARY: prints Claude's full session in the log, to debug the first runs. The log is public; it shows
+          # the research, not the secrets (GitHub blanks those out). Turn off once reports come through.
+          show_full_output: true
+          # No git or gh, and the only shell command is the data script.
           claude_args: >-
             --max-turns 60
             --allowedTools "Read,Write,Edit,Glob,Grep,WebSearch,WebFetch,Skill,Bash(python .claude/skills/move-report/scripts/move_data.py:*)"
-            --disallowedTools "Read(./.git/**),Edit(./.git/**),Write(./.git/**)"
 
-      # TEMPORARY: shows whether the action left a token in .git/config. Remove once a run shows 0.
-      - name: Check git config for credentials
-        if: always() && steps.watch.outputs.fire == 'true'
-        run: |
-          echo "credential lines in .git/config: $(grep -ciE 'extraheader|authorization|x-access-token' .git/config || true)"
+      # Hand the files to the publish job. Jobs run on separate machines, so files only travel as artifacts.
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report
+          path: data/moves
+          if-no-files-found: ignore
+          retention-days: 3
+
+  publish:
+    needs: [watch, research]
+    if: always() && needs.watch.outputs.fire == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Get the report
+        uses: actions/download-artifact@v4
+        continue-on-error: true # no artifact when research failed early; the next step reports that
+        with:
+          name: report
+          path: data/moves
 
       - name: Save the report and push the summary
-        if: always() && steps.watch.outputs.fire == 'true'
         env:
           TOPIC: ${{ secrets.NTFY_TOPIC }}
           # TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           # TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           # DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          STAMP: ${{ steps.watch.outputs.stamp }}
+          STAMP: ${{ needs.watch.outputs.stamp }}
           REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -132,6 +187,8 @@ jobs:
           # Keep the numbers the report quotes, one file per day: a later alert that day replaces it with fuller data.
           # (Yahoo drops 5-minute bars after ~60 days, so this is the only lasting copy of the intraday path.)
           mv -f data/moves/*-data.json data/moves/live/ 2>/dev/null || true
+          git config user.name "market-watch"
+          git config user.email "market-watch@users.noreply.github.com"
           git add data/moves/live
           git commit -m "market-watch: live report $STAMP"
           git pull --rebase "$url" main && git push "$url" HEAD:main

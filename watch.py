@@ -140,7 +140,7 @@ def main():
     STATE.write_text(json.dumps(state, indent=1))
     title = "; ".join(describe(a) for a in alerts)
     stamp = now.strftime("%Y-%m-%d-%H%M")
-    prompt = (f"/move-report LIVE intraday alert at {now:%Y-%m-%d %H:%M} UTC. Trigger: {title}. "
+    prompt = (f"Use the move-report skill. LIVE intraday alert at {now:%Y-%m-%d %H:%M} UTC. Trigger: {title}. "
               f"Prices and windows: {json.dumps(px)}. Matching headlines from the last 2 hours: "
               f"{json.dumps(news[:10])}. "
               f"Write the report to data/moves/live/{stamp}-move.md and the summary "
