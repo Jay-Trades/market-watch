@@ -49,7 +49,8 @@ jobs:
         env:
           TOPIC: ${{ secrets.NTFY_TOPIC }}
           MSG: ${{ steps.watch.outputs.title }}
-        run: curl -s -H "Title: Market alert" -H "Priority: high" -d "$MSG" "https://ntfy.sh/$TOPIC"
+        run: |
+          curl -s -H "Title: Market alert" -H "Priority: high" -d "$MSG" "https://ntfy.sh/$TOPIC"
 
       # Save the cooldown state before the long research step, so a failed research run can't cause repeat alerts.
       - name: Save state
