@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: market-watch  # a long research run makes the next check wait instead of overlapping it
+  group: market-watch # a long research run makes the next check wait instead of overlapping it
   cancel-in-progress: false
 
 permissions:
@@ -23,9 +23,13 @@ permissions:
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
+      # Don't leave the run's GitHub token in .git/config: Claude can read files and fetch URLs, so a web page that
+      # talked it into reading that file could leak a token with write access. Our own git steps pass it in directly.
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:
@@ -71,12 +75,16 @@ jobs:
       # Save the cooldown state before the long research step, so a failed research run can't cause repeat alerts.
       - name: Save state
         if: steps.watch.outputs.fire == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
+          url="https://x-access-token:$GH_TOKEN@github.com/$REPO.git"
           git config user.name "market-watch"
           git config user.email "market-watch@users.noreply.github.com"
           git add state.json
           git commit -m "market-watch: alert state"
-          git pull --rebase && git push
+          git pull --rebase "$url" main && git push "$url" HEAD:main
 
       - name: Research the move
         if: steps.watch.outputs.fire == 'true'
@@ -98,7 +106,9 @@ jobs:
           # DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           STAMP: ${{ steps.watch.outputs.stamp }}
           REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: |
+          url="https://x-access-token:$GH_TOKEN@github.com/$REPO.git"
           summary="data/moves/live/$STAMP-summary.txt"
           report="data/moves/live/$STAMP-move.md"
           link="https://github.com/$REPO/blob/main/$report"
@@ -113,7 +123,7 @@ jobs:
           mv -f data/moves/*-data.json data/moves/live/ 2>/dev/null || true
           git add data/moves/live
           git commit -m "market-watch: live report $STAMP"
-          git pull --rebase && git push
+          git pull --rebase "$url" main && git push "$url" HEAD:main
           curl -s -H "Title: Why it moved" -H "Click: $link" --data-binary "@$summary" "https://ntfy.sh/$TOPIC"
           # Telegram and Discord have no tap-to-open header, so the link goes at the end of the text.
           # curl -s "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" -d chat_id="$TELEGRAM_CHAT_ID" --data-urlencode text="$(cat "$summary") $link"
