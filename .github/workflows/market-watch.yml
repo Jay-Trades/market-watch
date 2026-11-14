@@ -126,34 +126,24 @@ jobs:
       # Claude runs the data script with plain `python`, so the packages go in system-wide.
       - run: uv pip install --system -r requirements.txt
 
-      # TEMPORARY: does the key work from GitHub's machine at all? Prints only the reply type and any error text.
-      - name: Test the API key
-        env:
-          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          echo "key length: ${#KEY}"
-          curl -s https://api.anthropic.com/v1/messages -H "x-api-key: $KEY" -H "anthropic-version: 2023-06-01" \
-            -H "content-type: application/json" \
-            -d '{"model":"claude-opus-5-5","max_tokens":5,"messages":[{"role":"user","content":"hi"}]}' \
-            | grep -oE '"type":"(message|error)"|"message":"[^"]*"' || true
+      # Claude Code CLI run directly, the same way the PC runs it. (anthropics/claude-code-action was tried first: its
+      # requests were refused with "credit balance too low" while the same key worked from this machine and through
+      # the same Claude Code version elsewhere. It also wrote the job's token into .git/config.) Pinned to a known version.
+      - run: npm install -g @anthropic-ai/claude-code@2.1.325
 
       - name: Research the move
-        uses: anthropics/claude-code-action@v1
-        with:
-          # Pay-per-use API key. To run on a Claude Pro/Max plan instead, swap for:
-          #   claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}   (token from `claude setup-token`)
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Without this the action asks GitHub for an OIDC token for the Claude GitHub App. This job's token is
-          # read-only, so it's fine that the action writes it into .git/config.
-          github_token: ${{ github.token }}
-          prompt: ${{ needs.watch.outputs.prompt }}
-          # TEMPORARY: prints Claude's full session in the log, to debug the first runs. The log is public; it shows
-          # the research, not the secrets (GitHub blanks those out). Turn off once reports come through.
-          show_full_output: true
-          # No git or gh, and the only shell command is the data script.
-          claude_args: >-
-            --max-turns 60
-            --allowedTools "Read,Write,Edit,Glob,Grep,WebSearch,WebFetch,Skill,Bash(python .claude/skills/move-report/scripts/move_data.py:*)"
+        env:
+          # Pay-per-use API key. To run on a Claude Pro/Max plan instead, replace with:
+          #   CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}   (token from `claude setup-token`)
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PROMPT: ${{ needs.watch.outputs.prompt }} # through env, not pasted into the command, like the headlines
+        # No git or gh, and the only shell command is the data script. The result line (cost, turns, errors) goes
+        # to the log; the research itself stays out of the public log and lands in the report file.
+        run: |
+          claude -p "$PROMPT" --max-turns 60 --output-format json \
+            --allowedTools "Read,Write,Edit,Glob,Grep,WebSearch,WebFetch,Skill,Bash(python .claude/skills/move-report/scripts/move_data.py:*)" \
+            > claude.json || true
+          jq '{is_error, num_turns, total_cost_usd, duration_ms, result: (.result // "" | .[0:500])}' claude.json || cat claude.json
 
       # Hand the files to the publish job. Jobs run on separate machines, so files only travel as artifacts.
       - name: Keep the report
