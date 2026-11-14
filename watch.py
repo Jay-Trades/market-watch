@@ -29,11 +29,12 @@ STALE_MIN = 40    # ignore an asset whose newest bar is older than this (SPY at 
 
 # Headlines: Google News search, last 2 hours. A hit needs a market word AND a cause word. Words that only
 # describe a move (crash, plunge, soar) are left out: a "bitcoin crashes" headline is the move, not a reason for it.
-NEWS_QUERY = ('Bessent OR Powell OR "Federal Reserve" OR Treasury OR SEC OR or BTC or ZEC or SPY or bitcoin OR zcash OR "S&P 500" '
-              'OR tariff OR crypto when:2h')
+NEWS_QUERY = ('Bessent OR Powell OR "Federal Reserve" OR Treasury OR SEC OR BTC OR ZEC OR SPY OR bitcoin OR zcash '
+              'OR "S&P 500" OR tariff OR crypto when:2h')  # Google only treats uppercase OR as "either"
 # ponytail: keyword filter, expect some misses and false hits; swap for a cheap model rating headlines if it gets noisy.
-MARKET = re.compile(r"\b(SEC|(?i:fed|fomc|powell|bessent|treasury|bitcoin|btc|zcash|zec|crypto|s&p|stocks?|"
-                    r"yields?|bonds?|tariffs?|etfs?|exchanges?|stablecoins?))\b")  # SEC is case-sensitive: "Sec." is Secretary
+# Uppercase-only words: "Sec." is Secretary and "spy" is espionage, so SEC/SPY/SPX/QQQ only match as tickers.
+MARKET = re.compile(r"\b(SEC|SPY|SPX|QQQ|(?i:fed|fomc|powell|bessent|treasury|bitcoin|btc|zcash|zec|crypto|s&p|"
+                    r"stocks?|yields?|bonds?|tariffs?|etfs?|exchanges?|stablecoins?))\b")
 MOVER = re.compile(r"\b(emergency|surprise|buybacks?|rate (cut|hike)|halt(ed|s)?|hack(ed)?|exploit|ban(s|ned)?|"
                    r"sanctions?|default|bankrupt\w*|delist\w*|approv\w*|reject\w*|intervention|"
                    r"lawsuit|sues|probe|resign\w*|ousted)\b", re.I)
