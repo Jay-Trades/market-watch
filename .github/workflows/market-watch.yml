@@ -3,8 +3,8 @@
 name: market-watch
 
 on:
-  # Every 30 min, 8 AM to 11 PM Eastern, every day (crypto trades weekends): ~31 runs/day, ~930 of the 2,000 free
-  # minutes a month (each run bills at least 1 minute). GitHub can start scheduled runs late or skip them when busy.
+  # Every 30 min, 8 AM to 11 PM Eastern, every day (crypto trades weekends): ~31 runs/day. Free on a public repo; a
+  # private fork uses ~930 of its 2,000 free minutes a month. GitHub can start scheduled runs late or skip them when busy.
   # ponytail: cron is UTC and fixed to EST (UTC-5); during daylight time it runs 9 AM to midnight Eastern.
   # Shift every hour down by one in March if that matters.
   schedule:
