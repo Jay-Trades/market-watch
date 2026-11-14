@@ -134,6 +134,11 @@ def main():
         print("headlines failed:", e)
     state = json.loads(STATE.read_text()) if STATE.exists() else {}
     alerts, state = decide(px, news, strong, state, now)
+    if not alerts and os.environ.get("FORCE") == "true":  # manual test: turn the biggest current move into an alert
+        sym, (w, (pct, z)) = max(((s, wz) for s, p in px.items() for wz in p.get("windows", {}).items()),
+                                 key=lambda x: abs(x[1][1][1]))
+        alerts = [{"symbol": sym, "name": ASSETS[sym] + " (TEST)", "window": w, "pct": pct, "x_normal": z,
+                   "with_news": bool(news)}]
     print(json.dumps({"prices": px, "news_hits": [h["title"] for h in news], "alerts": alerts}, indent=1))
     if not alerts:
         return

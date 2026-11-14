@@ -18,6 +18,11 @@ on:
     - cron: "*/30 0-3 * * *"
     - cron: "0 4 * * *"
   workflow_dispatch:
+    inputs:
+      force:
+        description: "Force an alert on the biggest current move (to test the whole chain)"
+        type: boolean
+        default: false
 
 concurrency:
   group: market-watch # a long research run makes the next check wait instead of overlapping it
@@ -54,6 +59,8 @@ jobs:
       - run: uv pip install --system -r requirements.txt
 
       - id: watch
+        env:
+          FORCE: ${{ inputs.force }} # empty on scheduled runs
         run: python watch.py
 
       # Headline text goes through env, never ${{ }} inside `run`, so a crafted headline can't inject shell commands.
