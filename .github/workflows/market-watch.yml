@@ -108,6 +108,9 @@ jobs:
             # jq -n --arg c "Research failed, check the Actions log for $STAMP" '{content: $c}' | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
             exit 0
           fi
+          # Keep the numbers the report quotes, one file per day: a later alert that day replaces it with fuller data.
+          # (Yahoo drops 5-minute bars after ~60 days, so this is the only lasting copy of the intraday path.)
+          mv -f data/moves/*-data.json data/moves/live/ 2>/dev/null || true
           git add data/moves/live
           git commit -m "market-watch: live report $STAMP"
           git pull --rebase && git push
