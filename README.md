@@ -23,7 +23,7 @@ Knobs are at the top of `watch.py`.
 
 ## Try it before running it live
 ```
-pip install -r requirements.txt
+pip install -r requirements.txt     # or: uv pip install -r requirements.txt
 python watch.py --test      # self-check
 python watch.py             # one live check, prints what it sees
 python backtest.py          # replay the last 60 days of prices through the same rules
