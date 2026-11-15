@@ -1,0 +1,4 @@
+What: Bitcoin up 2.6% in 4 hours to 65,445, 5.5% above the overnight low of 62,040.
+Why: No news found; likely a relief bounce after about $2B of weekend long liquidations ran out of sellers.
+Confidence: Low for this leg, medium that forced selling has paused.
+Watch: 65,900 and 62,000, the weekly close at 00:00 UTC, Monday's ETF flows.
