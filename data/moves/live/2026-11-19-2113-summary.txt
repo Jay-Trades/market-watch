@@ -1,0 +1,4 @@
+What: S&P 500 closed down 2.0% at the lows, 715.83, erasing a 1% gap up; AMD down 7.7%, VIX 28.6.
+Why: Likely sell-the-news on Anthropic's record IPO; stocks hit lows as ANT opened, after a 5-day slide.
+Confidence: Medium for the IPO timing, low on who sold; no flow or positioning data found.
+Watch: ANT vs 83 dollar offer, SPY 715.8 low, VIX above 29, Bitcoin 61,800.
