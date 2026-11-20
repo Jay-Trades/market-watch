@@ -1,0 +1,4 @@
+What: S&P 500 down 4% to 687 near the close, chips down 11%, Nvidia down 14%; Bitcoin 58,190, Zcash down 18%.
+Why: An AI selloff was already running; a Reuters report on the SEC's Nvidia accounting probe deepened it.
+Confidence: Medium for stocks, low for crypto, which bottomed before the Nvidia news.
+Watch: SPY 687 at the close, Nvidia's response over the weekend, Bitcoin 57,800.
