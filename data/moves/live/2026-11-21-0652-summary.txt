@@ -1,0 +1,4 @@
+What: Bitcoin up 3.5% in an hour to 57,718 off a two-year low near 55,400; Zcash up 6.2%.
+Why: Likely short covering after a 2.4B dollar liquidation flush, in thin Saturday trading. No news catalyst found.
+Confidence: Low for this hour; the downtrend (BTC down 6.9% in 24h) is intact.
+Watch: 58,000 to 58,600 to reclaim, 55,400 low, Sunday futures open, Monday ETF flows.
