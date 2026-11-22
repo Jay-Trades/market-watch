@@ -1,0 +1,4 @@
+What: Bitcoin 58,863, up 5.1% in 24h but down 1.4% in 4h, off Saturday's 60,400 peak.
+Why: The 24h gain starts at Saturday's 55k liquidation low; the short squeeze is over and the price is fading.
+Confidence: Medium on the base effect; no news catalyst found for this hour.
+Watch: 58,670 low and 58,000, 60,400 high, Sunday futures open, Monday ETF flows.
