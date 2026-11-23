@@ -1,0 +1,4 @@
+What: Bitcoin up 3.7% in an hour to 63,526; Zcash up 8.2% to 853.
+Why: Likely Nvidia reinstating Huang, sparking a stock relief rally plus short covering; BTC peaked just before the filing.
+Confidence: Medium. Timing fits roughly; no liquidation or flow data for this hour.
+Watch: BTC holding 62,000 after the 9:30 open, Nvidia's cash session, tonight's ETF flows.
