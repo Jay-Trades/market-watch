@@ -1,0 +1,4 @@
+What: Bitcoin down 5.1% in 24h to 60,120, Zcash down 17.9% to 720; both flat this hour.
+Why: Likely Monday's Nvidia rally unwinding, with chips down 5.6%, record ETF outflows and Fed-hike fears.
+Confidence: Medium for Bitcoin, low for Zcash's extra drop; no Zcash news today.
+Watch: 59,477 overnight low and 58,000, tonight's ETF flows, Wednesday's PCE.
