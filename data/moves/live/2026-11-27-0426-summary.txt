@@ -1,0 +1,4 @@
+What: Zcash up 9.4% in 4 hours to 755.81, bouncing off a three-month low near 690; flat last hour.
+Why: Likely an oversold bounce on leveraged futures buying plus a firmer bitcoin; no Zcash-specific news found.
+Confidence: Low. Futures data is secondhand and in-window price bars were unavailable.
+Watch: 700 support, 770 resistance, Friday's bitcoin options expiry, privacy-coin delistings before Nov 30.
